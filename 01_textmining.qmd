@@ -26,7 +26,8 @@ Find this repository: https://github.com/libjohn/workshop_textmining
 
 Much of this review comes from the site: https://juliasilge.github.io/tidytext/
 
-The primary library package `tidytext` enables all kinds of text mining. See Also this helpful free online book: [Text Mining with R: A Tidy Approach](https://www.tidytextmining.com/) by Silge and Robinson
+The primary library package `tidytext` enables all kinds of text mining.
+See Also this helpful free online book: [Text Mining with R: A Tidy Approach](https://www.tidytextmining.com/) by Silge and Robinson
 
 ```{r}
 library(janeaustenr)
@@ -49,7 +50,14 @@ style = 'position:absolute; bottom:0; right:0; padding:5px; border:0px;')
 
 ## Data
 
-We'll look at some books by [Jane Austen](https://en.wikipedia.org/wiki/Jane_Austen), an 18th century novelist. Austen explored women and marriage within the British upper class. The novelist has a unique and well earned following within literature. Her works is consistently discussed and honored. To this day, Austen's novels are the source of many adaptations, written and on-screen. Through the `janeaustenr` package we can access and mine the text of six Austen novels. We can call the collection of novels a corpra. An individual novel is a corpus.
+We'll look at some books by [Jane Austen](https://en.wikipedia.org/wiki/Jane_Austen), an 18th century novelist.
+Austen explored women and marriage within the British upper class.
+The novelist has a unique and well earned following within literature.
+Her works is consistently discussed and honored.
+To this day, Austen's novels are the source of many adaptations, written and on-screen.
+Through the `janeaustenr` package we can access and mine the text of six Austen novels.
+We can call the collection of novels a corpra.
+An individual novel is a corpus.
 
 ```{r}
 austen_books()
@@ -64,7 +72,10 @@ austen_books() %>%
 
 ## Data Cleaning
 
-Text mining typically requires a lot of data cleaning. In this case, we start with the `janeaustenr` collection that has already been cleaned. Nonetheless, further data wrangling is required. First, identifying a line number for each line of text in each book.
+Text mining typically requires a lot of data cleaning.
+In this case, we start with the `janeaustenr` collection that has already been cleaned.
+Nonetheless, further data wrangling is required.
+First, identifying a line number for each line of text in each book.
 
 ## Identify line numbers
 
@@ -79,13 +90,17 @@ original_books
 
 ## Tokens
 
-To work with these data as a **tidy** dataset, we need to restructure the data through *tokenization*. In our case a token is a single word. We want **one-token-per-row**. The `unnest_tokens()` function (tidytext package) will convert a data frame with a text column into the one-token-per-row format.
+To work with these data as a **tidy** dataset, we need to restructure the data through *tokenization*.
+In our case a token is a single word.
+We want **one-token-per-row**.
+The `unnest_tokens()` function (tidytext package) will convert a data frame with a text column into the one-token-per-row format.
 
 **Token**\
 **Tokenization**\
 [defined](https://www.techopedia.com/definition/13698/tokenization)
 
-The default tokenizing mode is "words". With the `unnest_tokens()` function, tokens can be: **words**, characters, character_shingles, **ngrams**, skip_ngrams, **sentences**, lines, paragraphs, regex, tweets, and ptb (Penn Treebank).
+The default tokenizing mode is "words".
+With the `unnest_tokens()` function, tokens can be: **words**, characters, character_shingles, **ngrams**, skip_ngrams, **sentences**, lines, paragraphs, regex, tweets, and ptb (Penn Treebank).
 
 ### Process
 
@@ -109,7 +124,7 @@ Remove stop-words from the books.
 
 ```{r}
 matchwords_books <- tidy_books %>%
-  anti_join(get_stopwords())
+  anti_join(stop_words)
 
 matchwords_books
 ```
@@ -122,7 +137,11 @@ matchwords_books
 
 You can customize stop-words data frames, sentiment data frames, etc.
 
-There are various *stop words* dictionaries. Here we add the stop word, "farfegnugen" to a custom dictionary. If Jane Austen ever used the word "farfegnugen" that would be weird, or bad. So we will take pains to not calculate the sentiment of that word - whether or not the term shows up in a sentiment dictionary. That is, we will remove the word by making it a part of a customized stop-words dictionary.
+There are various *stop words* dictionaries.
+Here we add the stop word, "farfegnugen" to a custom dictionary.
+If Jane Austen ever used the word "farfegnugen" that would be weird, or bad.
+So we will take pains to not calculate the sentiment of that word - whether or not the term shows up in a sentiment dictionary.
+That is, we will remove the word by making it a part of a customized stop-words dictionary.
 
 ```{r}
 stopwords::stopwords_getsources()
@@ -141,7 +160,8 @@ bind_rows(get_stopwords(), stopwords_custom)    # The default is "snowball"
 
 ### Calculate word frequency
 
-How many Austen countable words are there if we remove *snowball* stop-words? There are `r   nrow(dplyr::distinct(matchwords_books, word))` countable words.
+How many Austen countable words are there if we remove *snowball* stop-words?
+There are `r   nrow(dplyr::distinct(matchwords_books, word))` countable words.
 
 ```{r}
 matchwords_books %>% 
@@ -185,32 +205,43 @@ pride_prej_novel <- tibble(text = prideprejudice) %>%
 b.  Tokenize `pride_prej_novel` with `unnest_tokens()`
 
 ```{r}
-
+pride_prej_novel |> 
+  unnest_tokens(word, text)
 ```
 
 c.  Remove stop-words
 
 ```{r}
-
+pride_prej_novel |> 
+  unnest_tokens(word, text) |> 
+  anti_join(stop_words)
 ```
 
 d.  calculate word frequency
 
 ```{r}
-
+pride_prej_novel |> 
+  unnest_tokens(word, text) |> 
+  anti_join(stop_words) |>
+  count(word, sort = TRUE)
 ```
 
 e.  make a simple wordcloud
 
 ```{r}
-
+pride_prej_novel |> 
+  unnest_tokens(word, text) |> 
+  anti_join(stop_words) |>
+  count(word, sort = TRUE) |>
+  wordcloud2()
 ```
 
 ## Sentiment Analysis
 
 `get_sentiments()`
 
-Let's see what positive words exist in the bing dictionary. Then, count the frequency of those positive words that exist in *Emma*.
+Let's see what positive words exist in the bing dictionary.
+Then, count the frequency of those positive words that exist in *Emma*.
 
 ```{r}
 positive <- get_sentiments("bing") %>%
@@ -226,7 +257,8 @@ tidy_books %>%
 
 ### Prepare to visualize sentiment score
 
-Match all the Austen books to the bing sentiment dictionary. Count the word frequency.
+Match all the Austen books to the bing sentiment dictionary.
+Count the word frequency.
 
 ```{r}
 tidy_books %>%
@@ -295,7 +327,8 @@ bing_word_counts %>%
 
 ## Dictionaries
 
-What other dictionaries are available? How to choose?
+What other dictionaries are available?
+How to choose?
 
 -   [Without Dictiionaries there is no sentiment analysis](http://www.thinkingondata.com/without-dictionaries-no-sentiment-analysis/)
 -   [Sentiment Analysis: Analyzing Lexicon Quality and Estimation Errors](https://paulvanderlaken.com/2017/12/27/sentiment-analysis-lexicon-quality/)
@@ -400,6 +433,3 @@ emma_afinn %>%
 -   Data Wrangling with dplyr: ([video](https://juliasilge.github.io/tidytext/) \| [workshop](https://rfun.library.duke.edu/portfolio/r_flipped/))
 -   Data Visualization with ggplot2: ([video](https://warpwire.duke.edu/w/80YEAA/) \| [workshop](https://rfun.library.duke.edu/portfolio/ggplot_workshop/))
 
- 
-
- 

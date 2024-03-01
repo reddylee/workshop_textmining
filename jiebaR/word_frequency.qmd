@@ -1,0 +1,132 @@
+---
+title: "Tidy Text Analysis: Word frequencies & n-grams"
+output: html
+---
+
+## Packages
+
+```{r}
+library(tidyverse)
+library(tidytext)
+library(wordcloud2)
+library(readtext)
+library(friends)
+library(tm) # for the Corpus function
+library(jiebaR)
+library(png)
+```
+
+## With demo data
+
+```{r}
+demoFreqC |> 
+  wordcloud2(color = "random-light", backgroundColor = "black")
+```
+
+```{r}
+demoFreqC |> 
+  wordcloud2(minRotation = -pi/6, 
+             maxRotation = -pi/6, 
+             rotateRatio = 1,
+             size = 0.5,
+             shape = "circle",
+             color = "random-light", 
+             backgroundColor = "black")
+```
+
+```{r}
+demoFreq |> 
+  slice_max(order_by = freq, n = 50) |> 
+  wordcloud2(size = 1.5,
+             shape = "circle")
+```
+
+## More complex setup example using Friends data
+
+```{r}
+docs <- friends |> 
+  filter(speaker == "Ross Geller" ) |>
+  select(text) |> 
+  pull() |>
+  VectorSource() |>
+  Corpus() |> 
+  tm_map(content_transformer(tolower)) |>
+  tm_map(removePunctuation) |>
+  tm_map(removeNumbers) |>
+  tm_map(removeWords, stopwords("en")) |>
+  tm_map(stripWhitespace)
+```
+
+```{r}
+docs1 <- friends |> 
+  filter(speaker == "Ross Geller" ) |>
+  select(text) |> 
+  unnest_tokens(input = text, output = word) |> # split the text into words
+  anti_join(stop_words) |> # remove stop words
+  count(word, sort = TRUE) |> 
+  filter(n > 10)
+docs1 |> 
+  wordcloud2(size = 1.5,
+             shape = "circle",
+             color = "random-light", 
+             backgroundColor = "black")
+```
+
+```{r}
+dtm <- TermDocumentMatrix(docs) |> 
+  as.matrix()
+words <- sort(rowSums(dtm), decreasing = TRUE) 
+df <- data.frame(word = names(words), freq = words)
+df |> 
+  wordcloud2(size = .5,
+             shape = "circle",
+             color = "random-light", 
+             backgroundColor = "black")
+
+# save the wordcloud
+```
+
+## Introduction to Text Analysis in R: David Caughlin
+
+Lexicon-based sentiment analysis
+
+```{r}
+db <- read_csv("SHRM Discussion Board.csv")
+stop_words
+```
+
+```{r}
+db_new <- db |> 
+  unnest_tokens(input = Text, output = word) |> # split the text into words
+  anti_join(stop_words) |> # remove stop words
+  inner_join(get_sentiments("bing")) |> # get sentiment
+  count(word, sort = TRUE) 
+```
+
+```{r}
+db_new |> 
+  wordcloud2(size = 1.5,
+             shape = "circle",
+             color = "random-light", 
+             backgroundColor = "black")
+```
+
+```{r}
+shi <- read_csv("../ebooks/诗/诗经/shijing.csv")
+shi_new <- shi |> 
+  dplyr::select(zhengwen) |>
+  pull() |>
+  # 用jiebaR分词
+  segment(worker(stop_word = "stop_words.txt")) |>
+  tibble() |>
+  rename(zhengwen = 1) |> 
+  count(zhengwen, sort = TRUE)
+```
+
+```{r}
+shi_new |> 
+  wordcloud2(size = 1.5,
+             shape = "circle",
+             color = "random-light", 
+             backgroundColor = "black") 
+```

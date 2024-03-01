@@ -1,0 +1,46 @@
+```{r}
+library(tidyverse)
+library(jiebaR)
+library(tm)
+```
+
+```{r}
+segment("武汉市长江大桥参加了武汉市长江大桥的通车仪式。", 
+        worker(user = "custom_dict.txt"))
+segment("岂弟君子", worker())
+```
+
+```{r}
+redream <- fread("https://raw.githubusercontent.com/hankinghu/literature-books/master/%E7%BA%A2%E6%A5%BC%E6%A2%A6.txt", 
+                  header = F) |> 
+  tibble() |> 
+  rename(text = V1)
+write_csv2(redream, "redream.csv")
+```
+
+```{r}
+redream <- read.csv("redream.csv")
+redream |> 
+  select(text) |>
+  pull() |>
+  segment(worker(stop_word = "baidu_stopwords.txt", type = "mix", encoding = "UTF-8", topn = 2)) |> 
+  tibble() |>
+  rename(word = 1) |>
+  filter(nchar(word) > 1,
+         nchar(word) < 4) |>
+  count(word, sort = TRUE) |> 
+  wordcloud2::wordcloud2(size = 2)
+```
+```{r}
+redream |> 
+  select(text) |>
+  pull() |>
+  segment(worker(stop_word = "baidu_stopwords.txt", type = "mix", encoding = "UTF-8", topn = 2)) |> 
+  tibble() |> 
+  rename(word = 1) |>
+  #filter(word  %in% c("林黛玉", "黛玉"))
+  #filter(word  %in% c("贾宝玉", "宝玉"))
+  #filter(word  %in% c("王熙凤", "凤姐"))
+  filter(word  %in% c("宝钗","薛宝钗"))
+```
+

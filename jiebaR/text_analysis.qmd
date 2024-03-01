@@ -28,7 +28,6 @@ format:
 
 library(tidyverse)
 library(tidytext)
-library(jiebaR)
 ```
 
 ## Text
