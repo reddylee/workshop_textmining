@@ -31,6 +31,7 @@ redream |>
   count(word, sort = TRUE) |> 
   wordcloud2::wordcloud2(size = 2)
 ```
+
 ```{r}
 redream |> 
   select(text) |>
@@ -43,4 +44,3 @@ redream |>
   #filter(word  %in% c("王熙凤", "凤姐"))
   filter(word  %in% c("宝钗","薛宝钗"))
 ```
-

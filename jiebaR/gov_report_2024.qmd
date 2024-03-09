@@ -1,0 +1,24 @@
+```{r}
+library(tidyverse)
+library(tidytext)
+library(wordcloud2)
+library(jiebaR)
+```
+
+```{r}
+gov_report_2024 <- read_csv("extracted_text.csv", col_names = FALSE) |> 
+  drop_na()
+  
+#use wordcloud2 to create a word cloud
+gov_report_2024 |>
+   pull() |>
+  segment(worker(stop_word = "baidu_stopwords.txt")) |>
+  tibble() |>
+  rename(zhengwen = 1) |> 
+  count(zhengwen, sort = TRUE) |>
+  filter(n > 10) |>
+  wordcloud2()
+```
+
+
+
